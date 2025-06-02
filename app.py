@@ -100,7 +100,7 @@ location_map = {
     "CALLE 50": 74, "VERSALLES": 987, "COCO DEL MAR": 1029,
     "COSTA VERDE": 576, "VILLA ZAITA": 652, "CONDADO DEL REY": 660,
     "SANTA MARÍA": 99, "BRISAS NORTE": 668, "OCEAN MALL": 28,
-    "PLAZA EMPORIO": 8, "BODEGA": 18
+    "PLAZA EMPORIO": 8, "BODEGA": 18, "DAVID": 1079
 }
 
 picking_type_map = {
@@ -108,7 +108,7 @@ picking_type_map = {
     "CALLE 50": 160, "VERSALLES": 1821, "COCO DEL MAR": 1957,
     "COSTA VERDE": 329, "VILLA ZAITA": 398, "CONDADO DEL REY": 399,
     "SANTA MARÍA": 164, "BRISAS NORTE": 400, "OCEAN MALL": 152,
-    "PLAZA EMPORIO": 126
+    "PLAZA EMPORIO": 126, "DAVID": 2034
 }
 
 alias_map = {
