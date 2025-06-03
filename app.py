@@ -170,7 +170,7 @@ def validate_and_process_file(uploaded_file, db, uid, password, models):
         columnas_formato1 = {
             'COD_BARRA': ['COD_BARRA', 'CODBARRA', 'CODIGO_BARRA', 'CODIGOBARRAS', 'BARCODE'],
             'CANTIDAD': ['CANTIDAD', 'CANT', 'QTY', 'QUANTITY'],
-            'BODEGA': ['BODEGA', 'ALMACEN', 'SUCURSAL', 'TIENDA', 'WAREHOUSE']
+            'BODEGA': ['NBR_CLIENTE', 'ALMACEN', 'SUCURSAL', 'TIENDA', 'WAREHOUSE']
         }
 
         columnas_formato2 = {
