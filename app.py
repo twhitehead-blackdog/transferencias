@@ -1,155 +1,3 @@
-import streamlit as st
-import pandas as pd
-import xmlrpc.client
-import os
-import io
-import traceback
-import base64
-from datetime import datetime
-
-# Configuración de la página
-st.set_page_config(
-    page_title="Transferencias Black Dog",
-    page_icon="favicon.png",
-    layout="centered"
-)
-
-# CSS personalizado
-st.markdown("""
-    <style>
-    body, .main, .block-container {
-        background-color: #181818 !important;
-        color: #fafafa !important;
-    }
-    .main-title {
-        text-align: center;
-        font-size: 2.5em;
-        font-weight: 800;
-        margin-bottom: 0.2em;
-        letter-spacing: 1px;
-        color: #FAB803;
-        text-shadow: 0 2px 8px #00000055;
-    }
-    .subtitle {
-        text-align: center;
-        font-size: 1.18em;
-        color: #cccccc;
-        margin-bottom: 2em;
-    }
-    .welcome-card {
-        background: #222;
-        border-radius: 18px;
-        border: 2px solid #FAB803;
-        padding: 1.5em 2em;
-        margin-bottom: 2em;
-        box-shadow: 0 4px 24px #00000033;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .stButton>button {
-        background-color: #FAB803;
-        color: #181818;
-        font-weight: bold;
-        border-radius: 8px;
-        border: none;
-        padding: 0.7em 2.5em;
-        font-size: 1.2em;
-        margin: 0 auto;
-        display: block;
-        box-shadow: 0 2px 8px rgba(250,184,3,0.15);
-        transition: background 0.2s;
-    }
-    .stButton>button:hover {
-        background-color: #ffd84a;
-        color: #181818;
-    }
-    .upload-section {
-        background: #222;
-        border-radius: 18px;
-        border: 2px solid #FAB803;
-        padding: 1.5em 2em;
-        margin-bottom: 2em;
-    }
-    .results-section {
-        background: #222;
-        border-radius: 18px;
-        border: 2px solid #FAB803;
-        padding: 1.5em 2em;
-        margin-top: 2em;
-    }
-    .success-message {
-        color: #00ff00;
-        font-weight: bold;
-    }
-    .error-message {
-        color: #ff0000;
-        font-weight: bold;
-    }
-    hr {
-        border: 1px solid #FAB803;
-        margin-top: 2em;
-        margin-bottom: 1em;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# === MAPAS Y CONFIGURACIONES ===
-location_map = {
-    "BELLA VISTA": 41, "BRISAS DEL GOLF": 66, "ALBROOK FIELDS": 58,
-    "CALLE 50": 74, "VERSALLES": 987, "COCO DEL MAR": 1029,
-    "COSTA VERDE": 576, "VILLA ZAITA": 652, "CONDADO DEL REY": 660,
-    "SANTA MARÍA": 99, "BRISAS NORTE": 668, "OCEAN MALL": 28,
-    "PLAZA EMPORIO": 8, "BODEGA": 18, "DAVID": 1079
-}
-
-picking_type_map = {
-    "BELLA VISTA": 154, "BRISAS DEL GOLF": 158, "ALBROOK FIELDS": 154,
-    "CALLE 50": 160, "VERSALLES": 1821, "COCO DEL MAR": 1957,
-    "COSTA VERDE": 329, "VILLA ZAITA": 398, "CONDADO DEL REY": 399,
-    "SANTA MARÍA": 164, "BRISAS NORTE": 400, "OCEAN MALL": 152,
-    "PLAZA EMPORIO": 126, "DAVID": 2034
-}
-
-alias_map = {
-    "PARK PLAZA MALL (BELLA VISTA)": "BELLA VISTA",
-    "ALTAPLZ BRISAS DEL GOLF": "BRISAS DEL GOLF",
-    "AF - ALBROOK FIELDS": "ALBROOK FIELDS",
-    "ALBROOK": "ALBROOK FIELDS",
-    "C50 - CALLE 50": "CALLE 50",
-    "SANTA MARIA": "SANTA MARÍA",
-    "PH OCEAN MALL": "OCEAN MALL"
-}
-
-# === FUNCIONES DE CONEXIÓN ===
-@st.cache_resource
-def get_odoo_connection():
-    url = st.secrets["odoo"]["url"]
-    db = st.secrets["odoo"]["db"]
-    username = st.secrets["odoo"]["username"]
-    password = st.secrets["odoo"]["password"]
-
-    common = xmlrpc.client.ServerProxy(f'{url}/xmlrpc/2/common')
-    uid = common.authenticate(db, username, password, {})
-    models = xmlrpc.client.ServerProxy(f'{url}/xmlrpc/2/object')
-
-    return db, uid, password, models
-
-# Función para mostrar el logo
-def show_centered_logo(path="logo.png", width=220):
-    if os.path.exists(path):
-        with open(path, "rb") as image_file:
-            encoded = base64.b64encode(image_file.read()).decode()
-        st.markdown(
-            f"""
-            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 1.5em;">
-                <img src="data:image/png;base64,{encoded}" width="{width}">
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-# === FUNCIONES DE VALIDACIÓN Y PROCESAMIENTO ===
 def validate_and_process_file(uploaded_file, db, uid, password, models):
     try:
         content = uploaded_file.read().decode('latin-1')
@@ -170,7 +18,7 @@ def validate_and_process_file(uploaded_file, db, uid, password, models):
         columnas_formato1 = {
             'COD_BARRA': ['COD_BARRA', 'CODBARRA', 'CODIGO_BARRA', 'CODIGOBARRAS', 'BARCODE'],
             'CANTIDAD': ['CANTIDAD', 'CANT', 'QTY', 'QUANTITY'],
-            'BODEGA': ['NBR_CLIENTE']
+            'TIENDA_DESTINO': ['NBR_CLIENTE', 'TIENDA', 'DESTINO', 'SUCURSAL']
         }
 
         columnas_formato2 = {
@@ -193,7 +41,7 @@ def validate_and_process_file(uploaded_file, db, uid, password, models):
             validation_results['format_detected'] = 'FORMATO1'
             validation_results['column_mapping'] = formato1_cols
             df = df.rename(columns={v: k for k, v in formato1_cols.items()})
-            grupo_por = 'BODEGA'
+            grupo_por = 'TIENDA_DESTINO'
         elif all(formato2_cols.values()):
             validation_results['format_detected'] = 'FORMATO2'
             validation_results['column_mapping'] = formato2_cols
@@ -352,16 +200,13 @@ def create_transfers(validation_results, db, uid, password, models):
 
     return transfer_results
 
-# === INTERFAZ PRINCIPAL ===
 def main():
     show_centered_logo("logo.png", width=220)
-
     st.markdown("<div class='main-title'>Transferencias Black Dog</div>", unsafe_allow_html=True)
     st.markdown(
         "<div class='subtitle'>Sistema de transferencias automáticas entre sucursales.<br>Rápido, seguro y eficiente.</div>",
         unsafe_allow_html=True
     )
-
     st.markdown("""
         <div class='welcome-card'>
             <b>¿Cómo funciona?</b><br>
@@ -373,7 +218,6 @@ def main():
         </div>
     """, unsafe_allow_html=True)
 
-    # Conexión a Odoo
     try:
         with st.spinner("Conectando a Odoo..."):
             db, uid, password, models = get_odoo_connection()
@@ -383,7 +227,6 @@ def main():
         st.error(f"Error: {str(e)}")
         return
 
-    # Sección de carga de archivos
     st.markdown("<div class='upload-section'>", unsafe_allow_html=True)
     uploaded_files = st.file_uploader(
         "Arrastra o selecciona los archivos TXT a procesar",
@@ -393,7 +236,6 @@ def main():
     st.markdown("</div>", unsafe_allow_html=True)
 
     if uploaded_files:
-        # Validación manual de las extensiones
         valid_files = []
         ignored_files = []
 
@@ -431,7 +273,6 @@ def main():
 
                     for destino, location_data in validation_results.get('data_by_location', {}).items():
                         st.write(f"#### 📍 {location_data['original_name']}")
-
                         col1, col2, col3 = st.columns(3)
                         with col1:
                             st.write(f"📦 Total: {location_data['total_items']}")
@@ -448,7 +289,6 @@ def main():
                     if validation_results['is_valid']:
                         with st.spinner("Creando transferencias..."):
                             transfer_results = create_transfers(validation_results, db, uid, password, models)
-
                             if transfer_results['success']:
                                 for transfer in transfer_results['transfers_created']:
                                     st.success(f"✅ Transferencia {transfer['picking_id']} creada")
@@ -463,10 +303,8 @@ def main():
                     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown(
-        "<hr>"
-        "<div style='text-align:center; color:#FAB803; font-size:0.95em;'>"
-        "Desarrollado para Black Dog Panamá &copy; 2025"
-        "</div>",
+        "<hr><div style='text-align:center; color:#FAB803; font-size:0.95em;'>"
+        "Desarrollado para Black Dog Panamá &copy; 2025</div>",
         unsafe_allow_html=True
     )
 
