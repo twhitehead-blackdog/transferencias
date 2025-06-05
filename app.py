@@ -170,13 +170,13 @@ def validate_and_process_file(uploaded_file, db, uid, password, models):
         columnas_formato1 = {
             'COD_BARRA': ['COD_BARRA', 'CODBARRA', 'CODIGO_BARRA', 'CODIGOBARRAS', 'BARCODE'],
             'CANTIDAD': ['CANTIDAD', 'CANT', 'QTY', 'QUANTITY'],
-            'NBR_CLIENTE': ['NBR_CLIENTE']
+            'BODEGA': ['NBR_CLIENTE']
         }
 
         columnas_formato2 = {
             'CÓDIGO': ['CÓDIGO', 'CODIGO', 'CODE', 'COD', 'BARCODE'],
             'REFERENCIA INTERNA': ['REFERENCIA INTERNA', 'REFERENCIAINTERNA', 'REF_INTERNA', 'INTERNAL_REFERENCE'],
-            'SUCURSAL': ['SUCURSAL', 'NBR_CLIENTE', 'ALMACEN', 'TIENDA', 'WAREHOUSE'],
+            'SUCURSAL': ['SUCURSAL', 'BODEGA', 'ALMACEN', 'TIENDA', 'WAREHOUSE'],
             'SURTIDO': ['SURTIDO', 'CANTIDAD', 'CANT', 'QTY', 'QUANTITY']
         }
 
@@ -193,7 +193,7 @@ def validate_and_process_file(uploaded_file, db, uid, password, models):
             validation_results['format_detected'] = 'FORMATO1'
             validation_results['column_mapping'] = formato1_cols
             df = df.rename(columns={v: k for k, v in formato1_cols.items()})
-            grupo_por = 'NBR_CLIENTE'
+            grupo_por = 'BODEGA'
         elif all(formato2_cols.values()):
             validation_results['format_detected'] = 'FORMATO2'
             validation_results['column_mapping'] = formato2_cols
@@ -307,7 +307,7 @@ def create_transfers(validation_results, db, uid, password, models):
 
             picking_id = models.execute_kw(db, uid, password, 'stock.picking', 'create', [{
                 'picking_type_id': picking_type_map[destino],
-                'location_id': location_map["NBR_CLIENTE"],
+                'location_id': location_map["BODEGA"],
                 'location_dest_id': location_map[destino],
                 'origin': f"Auto-importación {location_data['original_name']} - {datetime.now().strftime('%Y-%m-%d %H:%M')}",
             }])
@@ -328,7 +328,7 @@ def create_transfers(validation_results, db, uid, password, models):
                         'product_uom_qty': item['quantity'],
                         'product_uom': item['product_data']['uom_id'][0],
                         'picking_id': picking_id,
-                        'location_id': location_map["NBR_CLIENTE"],
+                        'location_id': location_map["BODEGA"],
                         'location_dest_id': location_map[destino],
                     }])
                     transfer_info['items_processed'] += 1
